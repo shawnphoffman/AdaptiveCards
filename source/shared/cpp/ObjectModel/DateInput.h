@@ -5,13 +5,13 @@
 #include "Enums.h"
 #include "ElementParserRegistration.h"
 
-AdaptiveSharedNamespaceStart
+namespace AdaptiveSharedNamespace {
 class DateInput : public BaseInputElement
 {
 public:
     DateInput();
 
-    virtual Json::Value SerializeToJsonValue() const override;
+    Json::Value SerializeToJsonValue() const override;
 
     std::string GetMax() const;
     void SetMax(const std::string &value);
@@ -26,7 +26,7 @@ public:
     void SetValue(const std::string &value);
 
 private:
-    void PopulateKnownPropertiesSet();
+    void PopulateKnownPropertiesSet() override;
 
     std::string m_max;
     std::string m_min;
@@ -37,6 +37,13 @@ private:
 class DateInputParser : public BaseCardElementParser
 {
 public:
+    DateInputParser() = default;
+    DateInputParser(const DateInputParser&) = default;
+    DateInputParser(DateInputParser&&) = default;
+    DateInputParser& operator=(const DateInputParser&) = default;
+    DateInputParser& operator=(DateInputParser&&) = default;
+    virtual ~DateInputParser() = default;
+
     std::shared_ptr<BaseCardElement> Deserialize(
         std::shared_ptr<ElementParserRegistration> elementParserRegistration,
         std::shared_ptr<ActionParserRegistration> actionParserRegistration,
@@ -49,4 +56,4 @@ public:
         std::vector<std::shared_ptr<AdaptiveCardParseWarning>>& warnings,
         const std::string& jsonString);
 };
-AdaptiveSharedNamespaceEnd
+}

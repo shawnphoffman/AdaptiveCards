@@ -5,14 +5,14 @@
 #include "BaseActionElement.h"
 #include "BaseCardElement.h"
 
-AdaptiveSharedNamespaceStart
+namespace AdaptiveSharedNamespace {
 class Column : public BaseCardElement
 {
 public:
     Column();
 
-    virtual std::string Serialize() const;
-    virtual Json::Value SerializeToJsonValue() const override;
+    std::string Serialize() const override;
+    Json::Value SerializeToJsonValue() const override;
 
     static std::shared_ptr<Column> Deserialize(
         std::shared_ptr<ElementParserRegistration> elementParserRegistration,
@@ -29,7 +29,7 @@ public:
     std::string GetWidth() const;
     void SetWidth(const std::string &value);
 
-    // explicit width takes precedence over relative width 
+    // explicit width takes precedence over relative width
     int GetPixelWidth() const;
     void SetPixelWidth(const int value);
 
@@ -47,10 +47,10 @@ public:
     VerticalContentAlignment GetVerticalContentAlignment() const;
     void SetVerticalContentAlignment(const VerticalContentAlignment value);
 
-    virtual void GetResourceUris(std::vector<std::string>& resourceUris) override;
+    void GetResourceInformation(std::vector<RemoteResourceInformation>& resourceInfo) override;
 
 private:
-    void PopulateKnownPropertiesSet();
+    void PopulateKnownPropertiesSet() override;
 
     std::string m_width;
     unsigned int m_pixelWidth;
@@ -59,4 +59,4 @@ private:
     ContainerStyle m_style;
     VerticalContentAlignment m_verticalContentAlignment;
 };
-AdaptiveSharedNamespaceEnd
+}

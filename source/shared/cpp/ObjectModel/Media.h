@@ -6,14 +6,14 @@
 #include "ElementParserRegistration.h"
 #include "MediaSource.h"
 
-AdaptiveSharedNamespaceStart
+namespace AdaptiveSharedNamespace {
 class Media : public BaseCardElement
 {
     friend class MediaParser;
 public:
     Media();
 
-    virtual Json::Value SerializeToJsonValue() const override;
+    Json::Value SerializeToJsonValue() const override;
 
     std::string GetPoster() const;
     void SetPoster(const std::string& value);
@@ -23,17 +23,26 @@ public:
 
     std::vector<std::shared_ptr<MediaSource>>& GetSources();
 
+    void GetResourceInformation(std::vector<RemoteResourceInformation>& resourceInfo) override;
+
 private:
     std::string m_poster;
     std::string m_altText;
     std::vector<std::shared_ptr<MediaSource>> m_sources;
 
-    void PopulateKnownPropertiesSet();
+    void PopulateKnownPropertiesSet() override;
 };
 
 class MediaParser : public BaseCardElementParser
 {
 public:
+    MediaParser() = default;
+    MediaParser(const MediaParser&) = default;
+    MediaParser(MediaParser&&) = default;
+    MediaParser& operator=(const MediaParser&) = default;
+    MediaParser& operator=(MediaParser&&) = default;
+    virtual ~MediaParser() = default;
+
     std::shared_ptr<BaseCardElement> Deserialize(
         std::shared_ptr<ElementParserRegistration> elementParserRegistration,
         std::shared_ptr<ActionParserRegistration> actionParserRegistration,
@@ -46,4 +55,4 @@ public:
         std::vector<std::shared_ptr<AdaptiveCardParseWarning>>& warnings,
         const std::string& jsonString);
 };
-AdaptiveSharedNamespaceEnd
+}

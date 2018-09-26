@@ -1,6 +1,7 @@
 package io.adaptivecards.renderer.readonly;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.support.v4.app.FragmentManager;
@@ -23,6 +24,7 @@ import android.widget.TextView;
 
 import io.adaptivecards.objectmodel.ContainerStyle;
 import io.adaptivecards.objectmodel.ForegroundColor;
+import io.adaptivecards.objectmodel.HeightType;
 import io.adaptivecards.objectmodel.MarkDownParser;
 import io.adaptivecards.renderer.RenderedAdaptiveCard;
 import io.adaptivecards.renderer.actionhandler.ICardActionHandler;
@@ -43,7 +45,7 @@ import java.util.Vector;
 
 public class TextBlockRenderer extends BaseCardElementRenderer
 {
-    private TextBlockRenderer()
+    protected TextBlockRenderer()
     {
         // Set up Text Weight Map
         m_textWeightMap.put(TextWeight.Default, g_textWeightDefault);
@@ -132,11 +134,37 @@ public class TextBlockRenderer extends BaseCardElementRenderer
 
     // Class to replace ul and li tags
     public class UlTagHandler implements Html.TagHandler{
+        private int tagNumber = 0;
+        private boolean orderedList = false;
+
         @Override
         public void handleTag(boolean opening, String tag, Editable output,
                               XMLReader xmlReader) {
-            if(tag.equals("ul") && !opening) output.append("\n");
-            if(tag.equals("li") && opening) output.append("\n\t• ");
+            if (tag.equals("ul") && !opening)
+            {
+                output.append("\n");
+            }
+
+            if (tag.equals("listItem") && opening)
+            {
+                if (orderedList)
+                {
+                    output.append("\n");
+                    output.append(String.valueOf(tagNumber));
+                    output.append(". ");
+                    tagNumber++;
+                }
+                else
+                {
+                    output.append("\n• ");
+                }
+            }
+
+            if (tag.equals("ol") && opening)
+            {
+                orderedList = true;
+                tagNumber = 1;
+            }
         }
     }
 
@@ -228,6 +256,7 @@ public class TextBlockRenderer extends BaseCardElementRenderer
                     }
 
                     return true;
+
                 }
                 else
                 {
@@ -268,6 +297,10 @@ public class TextBlockRenderer extends BaseCardElementRenderer
 
         MarkDownParser markDownParser = new MarkDownParser(textWithFormattedDates);
         String textString = markDownParser.TransformToHtml();
+
+        // preprocess string to change <li> to <listItem> so we get a chance to handle them
+        textString = textString.replace("<li>", "<listItem>");
+
         Spanned htmlString;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
         {
@@ -279,7 +312,10 @@ public class TextBlockRenderer extends BaseCardElementRenderer
             htmlString = Html.fromHtml(textString, null, new UlTagHandler());
         }
         textView.setText(trimHtmlString(htmlString));
-        textView.setSingleLine(!textBlock.GetWrap());
+        if (!textBlock.GetWrap())
+        {
+            textView.setMaxLines(1);
+        }
         textView.setEllipsize(TextUtils.TruncateAt.END);
         textView.setOnTouchListener(new TouchTextView(new SpannableString(trimHtmlString(htmlString))));
         textView.setHorizontallyScrolling(false);
@@ -288,7 +324,16 @@ public class TextBlockRenderer extends BaseCardElementRenderer
         setSpacingAndSeparator(context, viewGroup, textBlock.GetSpacing(), textBlock.GetSeparator(), hostConfig, true);
         setTextColor(textView, textBlock.GetTextColor(), hostConfig, textBlock.GetIsSubtle(), containerStyle);
         setTextAlignment(textView, textBlock.GetHorizontalAlignment());
-        textView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+        if( textBlock.GetHeight() == HeightType.Stretch )
+        {
+            textView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT, 1));
+        }
+        else
+        {
+            textView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        }
+
         int maxLines = (int)textBlock.GetMaxLines();
         if (maxLines > 0 && textBlock.GetWrap())
         {
